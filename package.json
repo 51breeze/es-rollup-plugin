@@ -1,14 +1,14 @@
 {
   "name": "es-rollup-plugin",
   "version": "0.0.1",
-  "description": "EaseScript compilation loader",
+  "description": "Script content transform for EaseScript",
   "main": "index.js",
   "scripts": {
     "dev": "rollup -c"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/51breeze/es-loader.git"
+    "url": "git+git@github.com:51breeze/es-rollup-plugin.git"  
   },
   "keywords": [
     "es",
@@ -20,9 +20,9 @@
   "author": "Jun Ye",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/51breeze/es-loader/issues"
+    "url": "https://github.com/51breeze/es-rollup-plugin/issues"
   },
-  "homepage": "https://github.com/51breeze/es-loader#readme",
+  "homepage": "https://github.com/51breeze/es-rollup-plugin#readme",
   "dependencies": {
     "chokidar": "^3.5.2",
     "querystring": "^0.2.1",

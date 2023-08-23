@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+git@github.com:51breeze/es-rollup-plugin.git"  
+    "url": "git+git@github.com:51breeze/es-rollup-plugin.git"
   },
   "keywords": [
     "es",
@@ -46,6 +46,7 @@
     "element-ui": "^2.15.7",
     "es-javascript": "^0.3.5",
     "es-php": "^0.2.3",
+    "es-thinkphp": "^0.2.1",
     "es-vue": "^0.3.3",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",

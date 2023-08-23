@@ -177,7 +177,7 @@ function RollupPlugin(options={}){
                         }
                     });
                 }else{
-                    reject( new Error(`'${file}' is not resolve.` ) );
+                    reject( new Error(`'${file}' is not exists.` ) );
                 }
             });
         }

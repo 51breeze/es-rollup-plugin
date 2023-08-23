@@ -15,11 +15,43 @@ const workspace = path.join('./test/src');
 
 const plugins=[
     {
-      plugin:require('es-php'),
+      plugin:require('es-thinkphp'),
       options:{
-        output,
-        workspace
-      }
+				import:true,
+				includes:[
+					"api/config/*",
+					"api/lang/*",
+					'api/middleware.es',
+					'api/http/Image.es'
+				],
+				context:{
+					include:[
+						/([\\\/]|^)api([\\\/])/,
+						'PHPMailer/PHPMailer'
+					],
+					only:true
+				},
+				resolve:{
+					using:['PHPMailer.**'],
+					mapping:{
+						folder:{
+							"****.es::controller":"app/%1...",
+							"****.es::model":"app/%1...",
+							"****.es::router":"route",
+							"*/lang/*.es::general":"app/lang",
+							"*/*/lang/*.es::general":"app/%1/lang",
+							"*/middleware/*.es::*":"app/middleware",
+							"*/config/*.es::general":"config",
+							"*/*/config/*.es::general":"app/%1/config",
+							"**/middleware.es::general":"app/%1...",
+						},
+						namespace:{
+							"PHPMailer.**":"PHPMailer.%0..."
+						}
+					}
+				},
+				output:path.join(output, "server" )
+			}
     },
     {
       plugin:require('es-vue'),
@@ -47,7 +79,7 @@ export default {
         esPlugin({
             mode:"development",
             builder:plugins[1],
-            plugins:plugins[0],
+            plugins:[plugins[0]],
         }),
         vuePlugin({
             css:true,

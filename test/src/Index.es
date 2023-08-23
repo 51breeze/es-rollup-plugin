@@ -28,7 +28,10 @@ class Index{
         //     index.testRouterView();
         // });
 
+
+
         const index = new Index();
+        index.loadData()
 
         console.log( index.logo );
 
@@ -44,8 +47,14 @@ class Index{
 
 
          index.display();
+         
 
       
+    }
+
+    async loadData(){
+        const res = await @Http(api.http.Account,  create);
+        console.log( res )
     }
 
     display(){

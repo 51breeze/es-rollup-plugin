@@ -1,8 +1,8 @@
 {
-  "name": "rollup-plugin-es",
+  "name": "es-rollup-plugin",
   "version": "0.0.1",
-  "description": "rollup-plugin-es",
-  "main": "lib/loader.js",
+  "description": "EaseScript compilation loader",
+  "main": "index.js",
   "scripts": {
     "dev": "rollup -c"
   },
@@ -42,7 +42,11 @@
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-plugin-transform-vue-jsx": "^3.7.0",
     "babel-preset-env": "^1.7.0",
+    "easescript": "^0.4.0",
     "element-ui": "^2.15.7",
+    "es-javascript": "^0.3.5",
+    "es-php": "^0.2.3",
+    "es-vue": "^0.3.3",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-css-only": "^3.1.0",

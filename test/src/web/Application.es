@@ -26,7 +26,7 @@ class Application extends EventDispatcher{
     }
 
     mount( element:string | Node ){
-        this.getInstance({}).mount( element );
+        this.getInstance({})
     }
 
 }

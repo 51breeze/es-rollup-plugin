@@ -8,6 +8,7 @@ import Person;
 import MyView;
 import MySkin;
 import web.components.Component;
+import "assets/index.css";
 
 @import(VueRouter='vue-router')
 
@@ -49,7 +50,7 @@ class Index{
 
     display(){
         this.instance.value = "深圳"
-        this.instance.mount('#app');
+       // this.instance.mount('#app');
 
         setTimeout(()=>{
             const vm = this.instance as {$router:Router,$el:Node};
@@ -101,7 +102,7 @@ class Index{
         //document.body.appendChild( div )
 
 
-        this.instance.mount();
+       // this.instance.mount();
         it('should router page view', () => {
             this.instance.name = "标题名称";
             setTimeout(()=>{

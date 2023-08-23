@@ -24,18 +24,18 @@ class Skin<T extends Component > extends EventDispatcher{
     }
 
     getElementByRefName(name){
-        return this.hostComponent.getElementByRefName(name);
+        return this.hostComponent.getRefs(name);
     }
     
     slot( name:string , scope?:boolean, called?:boolean, params?:object ){
         return this.hostComponent.slot(name,scope,called,params);
     }
 
-    createElement(name:string|Component,data?:object,children?:Node[]){
-        return this.hostComponent.createElement(name,data,children);
+    createElement(name:string|Component,data?:object,children?:Node|web.components.Component[]){
+        return this.hostComponent.createVNode(name,data,children);
     }
 
     render(){
-        return this.hostComponent.createElement('div');
+        return this.hostComponent.createVNode('div');
     }
 }

@@ -8,7 +8,7 @@ package{
 
         @override
         render(){
-            return this.createElement( Option, this.getConfig(), this.slot('default') )
+            return this.createVNode( Option, this.getConfig(), this.slot('default') )
         }
     }
 }

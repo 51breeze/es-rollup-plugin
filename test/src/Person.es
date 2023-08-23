@@ -59,3 +59,15 @@ package{
     }
 
 }
+
+
+<style>
+
+.person{
+    background-color: aliceblue;
+}
+
+</style>
+
+
+<style file="person.css"></style>

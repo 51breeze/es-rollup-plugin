@@ -1,7 +1,7 @@
 const Compiler = require("easescript/lib/core/Compiler");
 const rollupPluginUtils = require('rollup-pluginutils');
-const decode = require('querystring/decode');
 const path = require('path');
+const vuePlugin=require("@vitejs/plugin-vue");
 const compiler = new Compiler();
 compiler.initialize();
 process.on('exit', (code) => {
@@ -23,37 +23,28 @@ function normalizePath(file, resource, query={}){
     return query.vue == void 0 ? compiler.normalizePath(resource) : compiler.normalizePath(file)
 }
 
-var _vueLoader = null;
-function getVueLoader(options){
-    if(_vueLoader)return _vueLoader;
-    let vueLoader = options.vueLoader;
-    if( !vueLoader ){
-        vueLoader = require('vue-loader').default;
-    }else if( vueLoader.default ){
-        vueLoader = vueLoader.default
-    }
-    if( typeof vueLoader !=='function' ){
-        throw new Error('Vue Loader is unavailable. please try `npm install vue-loader@^17.0.0`')
-    }
-    _vueLoader = vueLoader;
-    return _vueLoader;
+function parseResource(id) {
+    const [resourcePath, rawQuery] = id.split(`?`, 2);
+    const query = Object.fromEntries(new URLSearchParams(rawQuery));
+    return {
+        resourcePath,
+        resource:id,
+        query
+    };
 }
-
 
 function createFilter(include = [/\.es(\?(id|type|vue)|$)/i], exclude = []) {
     const filter = rollupPluginUtils.createFilter(include, exclude);
     return id => filter(id);
 }
 
-function RollupPlugin(options={}){
-    const isEs = createFilter(options.include, options.exclude);
-    Object.assign(compiler.options, options);
-    var builder = compiler.applyPlugin(options.builder);
+function makePlugins(plugins){
     var plugins = null;
-    var dependencies = new WeakSet();
+    var dependencies = null;
     var fsWatcher = null;
-    if( Array.isArray(options.plugins) && options.plugins.length > 0 ){
-        plugins = options.plugins.map( plugin=>compiler.applyPlugin(plugin) );
+    if( Array.isArray(plugins) && plugins.length > 0 ){
+        dependencies = new WeakSet();
+        plugins = plugins.map( plugin=>compiler.applyPlugin(plugin) );
         const make = (compilation)=>{
             try{
                 plugins.forEach( plugin=>{
@@ -95,29 +86,63 @@ function RollupPlugin(options={}){
         }
         compiler.on('onCreatedCompilation', build);
     }
+    return {plugins, dependencies, fsWatcher}
+}
 
+function EsPlugin(options={}){
+    const filter = createFilter(options.include, options.exclude);
+    Object.assign(compiler.options, options);
+    const builder = compiler.applyPlugin(options.builder);
+    const {plugins, dependencies} = makePlugins(options.plugins);
+    const rawOpts = builder.options || {};
+    const inheritPlugin = vuePlugin(Object.assign({include:/\.es$/}, rawOpts.vueOptions||{}));
+    const isVueTemplate = rawOpts.format ==='vue-raw' || rawOpts.format ==='vue-template' || rawOpts.format ==='vue-jsx';
     return {
         name: 'easescript',
-        resolveId(id){
-            if ( !isEs(id) )return null;
-            return id;
-        },
-        load( id ){
-            if( !isEs(id) )return null;
-            return id;
-        },
-        transform(code, filename){
-            if ( !isEs(filename) ) return;
-            var queryIndex = filename.indexOf('?');
-            var query = {};
-            var file = filename;
-            if( queryIndex > 0 ){
-                file = filename.substr(0, queryIndex);
-                query = decode(filename.substr(queryIndex+1));  
+        handleHotUpdate(ctx) {
+            if(isVueTemplate){
+                return inheritPlugin.handleHotUpdate.call(this, ctx);
             }
-            
+        },
+        config(config) {
+            if(isVueTemplate){
+                return inheritPlugin.config.call(this, config);
+            }
+            return config;
+        },
+        configResolved(config){
+            if(isVueTemplate){
+                inheritPlugin.configResolved.call(this, config);
+            }
+        },
+        configureServer(server){
+            if(isVueTemplate){
+                inheritPlugin.configureServer.call(this, server);
+            }
+        },
+        buildStart(){
+            if(isVueTemplate){
+                inheritPlugin.buildStart.call(this);
+            }
+        },
+        async resolveId(id){
+            if(isVueTemplate){
+                const res = await inheritPlugin.resolveId.call(this, id);
+                if( res )return res;
+            }
+            if ( !filter(id) )return null;
+            return id;
+        },
+        
+        load( id, opt ){
+            if(!isVueTemplate)return null;
+            return inheritPlugin.load.call(this, id, opt);
+        },
+        transform(code, id, opts){
+            if ( !filter(id) ) return;
+            const {resourcePath,resource,query} = parseResource(id);
             return new Promise((resolve,reject)=>{
-                const compilation = compiler.createCompilation(file);
+                const compilation = compiler.createCompilation(resourcePath);
                 if( compilation ){
                     if( !compilation.isValid() ){
                         compilation.clear();
@@ -132,26 +157,25 @@ function RollupPlugin(options={}){
                             reject( new Error( errors.join("\r\n") ) );
                         }else{
                         
-                            this.addWatchFile( compilation.file );
-                            const resourceFile = normalizePath(compilation.file, filename, query);
+                            if(options.hot){
+                                this.addWatchFile( compilation.file );
+                            }
+
+                            const resourceFile = normalizePath(compilation.file, resource, query);
                             let content = plugin.getGeneratedCodeByFile(resourceFile);
                             if( content ){
-                                const opts = plugin.options;
-                                if( (opts.format ==='vue-raw' || opts.format ==='vue-template' || opts.format ==='vue-jsx') ){
+                                if( isVueTemplate ){
                                     try{
-                                        const vueLoader = getVueLoader(options);
                                         if( query.vue !== void 0 && query.type){
-                                            resolve({code:content, map:null})
-                                            return;
+                                            return resolve(inheritPlugin.transform.call(this, content, resource, opts));
                                         }else if( /^<(template|script|style)>/.test(content) ){
-                                            content = vueLoader.call(this, content)
+                                            return resolve(inheritPlugin.transform.call(this, content, resource, opts));
                                         }
                                     }catch(e){
                                         reject(e);
                                         return;
                                     }
                                 }
-
                                 if( options.hot && plugins && !compilation.isDescriptionType && compilation.pluginScopes.local && !(query && query.type === 'style') ){
                                     let hasDep = false;
                                     const addServerDeps = (compilation)=>{
@@ -169,19 +193,18 @@ function RollupPlugin(options={}){
                                         content += `\r\n/*Service hot by ${Math.random()}*/`;
                                     }
                                 }
-                                resolve({code:content, map:plugin.getGeneratedSourceMapByFile(resourceFile)});
-                                return;
+                                resolve({code:content, map:plugin.getGeneratedSourceMapByFile(resourceFile)||{}});
                             }else{
                                 reject( new Error(`'${resourceFile}' is not exists.` ) );
                             }
                         }
                     });
                 }else{
-                    reject( new Error(`'${file}' is not exists.` ) );
+                    reject( new Error(`'${resource}' is not exists.` ) );
                 }
             });
         }
     }
 }
 
-export default RollupPlugin;
+export default EsPlugin;

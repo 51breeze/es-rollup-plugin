@@ -15,7 +15,9 @@
     "ease",
     "script",
     "EaseScript",
-    "web"
+    "web",
+    "es-rollup",
+    "es-rollup-plugin"
   ],
   "author": "Jun Ye",
   "license": "MIT",
@@ -24,8 +26,7 @@
   },
   "homepage": "https://github.com/51breeze/es-rollup-plugin#readme",
   "dependencies": {
-    "chokidar": "^3.5.2",
-    "querystring": "^0.2.1",
+    "@vitejs": "^4.3.3",
     "rollup-pluginutils": "^2.8.2"
   },
   "devDependencies": {

@@ -126,12 +126,17 @@ function EsPlugin(options={}){
             }
         },
         async resolveId(id){
-            if(isVueTemplate){
-                const res = await inheritPlugin.resolveId.call(this, id);
-                if( res )return res;
+            if( filter(id) && !path.isAbsolute(id) ){
+                const className = compiler.getFileClassName(id).replace(/\//g,'.');
+                const desc = Namespace.globals.get(className);
+                if( desc && desc.compilation ){
+                    return desc.compilation.file;
+                }
             }
-            if ( !filter(id) )return null;
-            return id;
+            if(isVueTemplate){
+                return await inheritPlugin.resolveId.call(this, id);
+            }
+            return null;
         },
         
         load( id, opt ){

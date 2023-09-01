@@ -48,6 +48,15 @@ function makePlugins(plugins){
         const make = (compilation)=>{
             try{
                 plugins.forEach( plugin=>{
+                    const context = plugin.options.context;
+                    if( context ){
+                        if( context.exclude && context.exclude.some( rule=>rule.test(compilation.file) ) ){
+                            return;
+                        }
+                        if( context.include && !context.include.some( rule=>rule.test(compilation.file) ) ){
+                            return;
+                        }
+                    }
                     if( compiler.isPluginInContext(plugin , compilation) ){
                         if( !dependencies.has(compilation) ){
                             dependencies.add(compilation);
